@@ -20,3 +20,19 @@ Monitoreo de procesos y comandos sospechosos de PowerShell capturados por Sysmon
   index=sysmon_attack powershell 
   | table _time, host, EventID, CommandLine, User
   | sort - _time
+
+---
+
+## 🗺️ 2. Matriz de Cobertura MITRE ATT&CK
+
+| Táctica | Técnica | Subtécnica | Evento Sysmon | Regla SPL | Regla Sigma | Playbook |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Execution** | T1059 | T1059.001 (PowerShell) | EventID 1 | `queries/soc_detections.spl` | `sigma/powershell_suspicious.yml` | `docs/playbook_powershell.md` |
+| **Persistence** | T1547 | T1547.001 (Registry Run Keys) | EventID 13 | `queries/soc_detections.spl` | `sigma/registry_persistence.yml` | `docs/playbook_persistencia.md` |
+| **Command and Control** | T1071 | T1071.001 (Web Protocols) | EventID 3 | `queries/soc_detections.spl` | — | — |
+
+---
+
+## 📚 3. Documentación y Playbooks de Respuesta
+* [SOC Playbook: Detección de PowerShell](docs/playbook_powershell.md)
+* [SOC Playbook: Persistencia en Registro](docs/playbook_persistencia.md)
