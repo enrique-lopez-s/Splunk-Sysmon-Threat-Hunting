@@ -1,46 +1,34 @@
 ################################################################################
-# TÍTULO: Consultas de Threat Hunting con Sysmon y Splunk
-# AUTOR: Enrique López
-# DESCRIPCIÓN: Colección de reglas analíticas en SPL (Splunk Processing Language)
-#             para la detección de técnicas de ataque mapeadas a MITRE ATT&CK.
-# ENTORNO: Splunk Enterprise 9.4.0 / Linux Mint
+# CASO DE USO 1: Detección de PowerShell (T1059.001)
+# Estándar Sysmon (XML):
+# index=* EventCode=1 (Image="*powershell.exe" OR Image="*pwsh.exe") | table _time, host, User, Image, CommandLine
+#
+# Adaptación para Dataset CSV (Laboratorio):
 ################################################################################
-
-
-################################################################################
-# CASO DE USO 1: Ejecución de PowerShell Ofensivo (T1059.001)
-# Telemetría: Sysmon Event ID 1 (Process Creation)
-# Descripción: Detecta la ejecución de PowerShell utilizando flags comunes de 
-#              evasión, omisión de políticas de ejecución o codificación Base64.
-################################################################################
-
-index=* sourcetype=evtx_data (Image="*powershell.exe" OR Image="*pwsh.exe")
-| search CommandLine="*bypass*" OR CommandLine="*encoded*" OR CommandLine="*downloadstring*" OR CommandLine="*nop*"
-| stats count by _time, Hostname, User, Image, CommandLine
+index=sysmon_attack powershell 
+| table _time, host, EventID, CommandLine, User
 | sort - _time
 
 
 ################################################################################
-# CASO DE USO 2: Persistencia vía Registro de Windows (T1547.001)
-# Telemetría: Sysmon Event ID 12 / 13 (Registry Modification)
-# Descripción: Identifica modificaciones maliciosas o inusuales en claves de 
-#              arranque automático (Run, RunOnce, Services) para asegurar 
-#              supervivencia tras reinicios.
+# CASO DE USO 2: Persistencia en Registro (T1547.001)
+# Estándar Sysmon (XML):
+# index=* (EventCode=12 OR EventCode=13) TargetObject="*\\CurrentVersion\\Run*" | table _time, host, User, Image, TargetObject
+#
+# Adaptación para Dataset CSV (Laboratorio):
 ################################################################################
-
-index=* (EventID=12 OR EventID=13 OR EventCode=12 OR EventCode=13)
-| search TargetObject="*\\CurrentVersion\\Run*" OR TargetObject="*\\CurrentVersion\\RunOnce*" OR TargetObject="*\\System\\CurrentControlSet\\Services*"
-| table _time, host, User, Image, TargetObject, Details
+index=sysmon_attack (EventCode=13 OR *CurrentVersion\Run* OR *Registry*)
+| table _time, host, EventID, TargetObject, Details, User
 | sort - _time
 
 
 ################################################################################
 # CASO DE USO 3: Conexiones de Red Sospechosas de Procesos Críticos (T1071)
-# Telemetría: Sysmon Event ID 3 (Network Connection)
-# Descripción: Aísla ejecutables de consola del sistema (PowerShell, CMD, Rundll32)
-#              estableciendo comunicaciones salientes hacia la red.
+# Estándar Sysmon (XML):
+# index=* EventCode=3 (Image="*powershell.exe" OR Image="*cmd.exe" OR Image="*rundll32.exe") | table _time, host, User, Image, DestinationIp, DestinationPort
+#
+# Adaptación para Dataset CSV (Laboratorio):
 ################################################################################
-
-index=* (EventID=3 OR EventCode=3) (Image="*powershell.exe" OR Image="*cmd.exe" OR Image="*rundll32.exe")
-| table _time, host, User, Image, SourceIp, SourcePort, DestinationIp, DestinationPort
+index=sysmon_attack (EventCode=3 OR EventID=3) (powershell OR cmd OR rundll32)
+| table _time, host, EventID, Image, DestinationIp, DestinationPort, User
 | sort - _time

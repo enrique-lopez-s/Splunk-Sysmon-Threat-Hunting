@@ -1,0 +1,25 @@
+title: Ejecucion de PowerShell con Parametros Sospechosos
+id: 1a2b3c4d-5678-90ab-cdef-1234567890ab
+status: experimental
+description: Detecta la ejecucion de PowerShell utilizando parametros de bypass u ocultacion.
+references:
+    - https://attack.mitre.org/techniques/T1059/001/
+author: Enrique Lopez
+date: 2026/10/14
+logsource:
+    product: windows
+    service: sysmon
+detection:
+    selection:
+        EventID: 1
+        Image|endswith:
+            - '\powershell.exe'
+            - '\pwsh.exe'
+        CommandLine|contains:
+            - '-bypass'
+            - '-encoded'
+            - '-downloadstring'
+    condition: selection
+falsepositives:
+    - Scripts administrativos internos de la organizacion.
+level: high

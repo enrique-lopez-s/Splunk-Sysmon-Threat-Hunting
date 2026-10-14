@@ -1,0 +1,21 @@
+title: Persistencia via Claves de Registro de Windows (Run/RunOnce)
+id: 2b3c4d5e-6789-01ab-cdef-2345678901bc
+status: experimental
+description: Detecta modificaciones en claves de registro de inicio automático utilizadas por malware para asegurar persistencia.
+references:
+    - https://attack.mitre.org/techniques/T1547/001/
+author: Enrique Lopez
+date: 2026/10/14
+logsource:
+    product: windows
+    service: sysmon
+detection:
+    selection:
+        EventID: 13
+        TargetObject|contains:
+            - '\CurrentVersion\Run'
+            - '\CurrentVersion\RunOnce'
+    condition: selection
+falsepositives:
+    - Instalaciones legítimas de software o actualizaciones del sistema operativo.
+level: high
